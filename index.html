@@ -504,6 +504,7 @@
     if (thirdParty.length) params.set('third', thirdParty.join('|'));
     if (extra)     params.set('notes', extra);
 
+    params.set('view', 'policy');
     const url = window.location.origin + window.location.pathname + '?' + params.toString();
     document.getElementById('generated-url').value = url;
     document.getElementById('url-box').style.display = 'block';
@@ -554,6 +555,15 @@
     }
 
     generatePolicy();
+
+    if (params.get('view') === 'policy') {
+      document.querySelector('header').style.display = 'none';
+      document.querySelector('.form-panel').style.display = 'none';
+      document.querySelector('.container').style.gridTemplateColumns = '1fr';
+      document.querySelector('.preview-toolbar').style.display = 'none';
+      document.querySelector('.preview-panel').style.boxShadow = 'none';
+      document.querySelector('.preview-panel').style.padding = '2rem';
+    }
   })();
 
   function esc(str) {
