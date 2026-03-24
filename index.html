@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy Generator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f7fa;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #2563eb;
+      color: white;
+      padding: 1.5rem 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    }
+    header h1 { font-size: 1.4rem; font-weight: 700; }
+    header p  { font-size: .9rem; opacity: .85; margin-top: .2rem; }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 720px) {
+      .container { grid-template-columns: 1fr; }
+    }
+
+    /* ── FORM PANEL ── */
+    .form-panel {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,.08);
+      height: fit-content;
+      position: sticky;
+      top: 1.5rem;
+    }
+
+    .form-panel h2 { font-size: 1rem; font-weight: 700; margin-bottom: 1.2rem; color: #2563eb; }
+
+    .field { margin-bottom: 1rem; }
+    label  { display: block; font-size: .8rem; font-weight: 600; color: #555; margin-bottom: .3rem; }
+
+    input[type="text"], input[type="email"], input[type="url"], select, textarea {
+      width: 100%;
+      padding: .55rem .75rem;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: .875rem;
+      color: #1a1a2e;
+      outline: none;
+      transition: border-color .2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #2563eb; }
+    textarea { resize: vertical; min-height: 70px; }
+
+    .section-title {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #9ca3af;
+      margin: 1.2rem 0 .6rem;
+      border-top: 1px solid #f0f0f0;
+      padding-top: .8rem;
+    }
+
+    .checkbox-group { display: flex; flex-direction: column; gap: .45rem; }
+    .checkbox-group label {
+      display: flex; align-items: center; gap: .5rem;
+      font-size: .85rem; font-weight: 400; color: #374151; cursor: pointer;
+    }
+    .checkbox-group input[type="checkbox"] { width: 15px; height: 15px; accent-color: #2563eb; }
+
+    .platform-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .4rem; }
+    .chip {
+      padding: .3rem .75rem;
+      border-radius: 999px;
+      border: 1.5px solid #d1d5db;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: white;
+      color: #6b7280;
+      transition: all .15s;
+      user-select: none;
+    }
+    .chip.active { border-color: #2563eb; background: #eff6ff; color: #2563eb; }
+
+    .btn-generate {
+      width: 100%;
+      margin-top: 1.4rem;
+      padding: .7rem;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: .9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-generate:hover { background: #1d4ed8; }
+
+    /* ── PREVIEW PANEL ── */
+    .preview-panel {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem 2.5rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,.08);
+    }
+
+    .preview-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: .6rem;
+    }
+    .preview-toolbar h2 { font-size: 1rem; font-weight: 700; color: #374151; }
+
+    .btn-copy, .btn-raw {
+      padding: .4rem .9rem;
+      border-radius: 7px;
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid #d1d5db;
+      background: white;
+      color: #374151;
+      transition: all .15s;
+    }
+    .btn-copy:hover { border-color: #2563eb; color: #2563eb; }
+    .btn-raw:hover  { border-color: #059669; color: #059669; }
+
+    #policy-output {
+      font-size: .9rem;
+      line-height: 1.75;
+      color: #1f2937;
+    }
+    #policy-output h1 { font-size: 1.5rem; margin-bottom: .3rem; }
+    #policy-output .meta { font-size: .8rem; color: #9ca3af; margin-bottom: 2rem; }
+    #policy-output h2 { font-size: 1.05rem; font-weight: 700; margin: 1.8rem 0 .5rem; color: #1e40af; border-left: 3px solid #2563eb; padding-left: .6rem; }
+    #policy-output p  { margin-bottom: .75rem; }
+    #policy-output ul { padding-left: 1.4rem; margin-bottom: .75rem; }
+    #policy-output ul li { margin-bottom: .3rem; }
+
+    .placeholder-msg {
+      text-align: center;
+      color: #9ca3af;
+      padding: 3rem 1rem;
+      font-size: .95rem;
+    }
+    .placeholder-msg span { font-size: 2.5rem; display: block; margin-bottom: .8rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Privacy Policy Generator</h1>
+  <p>Chrome Extension · iOS App · Android App · Web App</p>
+</header>
+
+<div class="container">
+
+  <!-- ── FORM ── -->
+  <aside class="form-panel">
+    <h2>App Details</h2>
+
+    <div class="field">
+      <label>App / Extension Name *</label>
+      <input type="text" id="appName" placeholder="e.g. My Productivity Tool" />
+    </div>
+
+    <div class="field">
+      <label>Developer / Company Name *</label>
+      <input type="text" id="devName" placeholder="e.g. John Doe / Acme Inc." />
+    </div>
+
+    <div class="field">
+      <label>Contact Email *</label>
+      <input type="email" id="email" placeholder="privacy@example.com" />
+    </div>
+
+    <div class="field">
+      <label>Website / Support URL</label>
+      <input type="url" id="website" placeholder="https://example.com" />
+    </div>
+
+    <div class="section-title">Platforms</div>
+    <div class="platform-chips">
+      <span class="chip active" data-val="Chrome Extension">Chrome Extension</span>
+      <span class="chip" data-val="iOS App">iOS App</span>
+      <span class="chip" data-val="Android App">Android App</span>
+      <span class="chip" data-val="Web App">Web App</span>
+    </div>
+
+    <div class="section-title">Data We Collect</div>
+    <div class="checkbox-group" id="dataCollected">
+      <label><input type="checkbox" value="browsing history" /> Browsing history</label>
+      <label><input type="checkbox" value="personal information" /> Personal information (name, email)</label>
+      <label><input type="checkbox" value="usage data and analytics" /> Usage data / Analytics</label>
+      <label><input type="checkbox" value="device information" /> Device information</label>
+      <label><input type="checkbox" value="location data" /> Location data</label>
+      <label><input type="checkbox" value="payment information" /> Payment information</label>
+      <label><input type="checkbox" value="user-generated content" /> User-generated content</label>
+    </div>
+
+    <div class="section-title">Third-Party Services</div>
+    <div class="checkbox-group" id="thirdParty">
+      <label><input type="checkbox" value="Google Analytics" /> Google Analytics</label>
+      <label><input type="checkbox" value="Firebase" /> Firebase</label>
+      <label><input type="checkbox" value="Stripe (payments)" /> Stripe (payments)</label>
+      <label><input type="checkbox" value="Sentry (error tracking)" /> Sentry (error tracking)</label>
+      <label><input type="checkbox" value="advertising networks" /> Advertising networks</label>
+    </div>
+
+    <div class="section-title">Additional Notes</div>
+    <div class="field">
+      <textarea id="extraNotes" placeholder="Any extra clauses or region-specific notes (optional)…"></textarea>
+    </div>
+
+    <button class="btn-generate" onclick="generatePolicy()">Generate Policy</button>
+  </aside>
+
+  <!-- ── PREVIEW ── -->
+  <main class="preview-panel">
+    <div class="preview-toolbar">
+      <h2>Preview</h2>
+      <div style="display:flex;gap:.5rem;">
+        <button class="btn-copy" onclick="copyMarkdown()">Copy Markdown</button>
+        <button class="btn-raw"  onclick="copyHTML()">Copy HTML</button>
+      </div>
+    </div>
+    <div id="policy-output">
+      <div class="placeholder-msg">
+        <span>📄</span>
+        Fill in your app details on the left and click<br><strong>Generate Policy</strong>.
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  /* ── Platform chips toggle ── */
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => chip.classList.toggle('active'));
+  });
+
+  /* ── Helpers ── */
+  function checked(groupId) {
+    return [...document.querySelectorAll(`#${groupId} input:checked`)].map(el => el.value);
+  }
+
+  function activePlatforms() {
+    return [...document.querySelectorAll('.chip.active')].map(c => c.dataset.val);
+  }
+
+  function today() {
+    return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  /* ── Generate ── */
+  function generatePolicy() {
+    const appName  = document.getElementById('appName').value.trim()  || 'Our Application';
+    const devName  = document.getElementById('devName').value.trim()  || 'The Developer';
+    const email    = document.getElementById('email').value.trim()    || 'contact@example.com';
+    const website  = document.getElementById('website').value.trim();
+    const platforms = activePlatforms();
+    const data      = checked('dataCollected');
+    const thirdParty = checked('thirdParty');
+    const extra     = document.getElementById('extraNotes').value.trim();
+
+    const platformStr = platforms.length ? platforms.join(', ') : 'our application';
+
+    /* build rendered HTML */
+    let html = `
+      <h1>Privacy Policy — ${esc(appName)}</h1>
+      <p class="meta">Last updated: ${today()} &nbsp;·&nbsp; Applies to: ${esc(platformStr)}</p>
+
+      <h2>1. Introduction</h2>
+      <p>
+        Welcome to <strong>${esc(appName)}</strong> ("we", "our", or "us"), developed by
+        <strong>${esc(devName)}</strong>. This Privacy Policy explains how we collect, use,
+        disclose, and safeguard your information when you use ${esc(platformStr)}.
+        Please read this policy carefully. If you disagree with its terms, please discontinue use.
+      </p>`;
+
+    /* Data collection section */
+    if (data.length) {
+      html += `
+      <h2>2. Information We Collect</h2>
+      <p>We may collect the following categories of information:</p>
+      <ul>${data.map(d => `<li>${esc(d)}</li>`).join('')}</ul>
+      <p>
+        We collect this information only to the extent necessary to provide our services and
+        improve your experience.
+      </p>`;
+    } else {
+      html += `
+      <h2>2. Information We Collect</h2>
+      <p>
+        We do <strong>not</strong> collect any personal information from users. The
+        ${esc(platformStr)} operates entirely on your device and does not transmit personal
+        data to our servers.
+      </p>`;
+    }
+
+    html += `
+      <h2>3. How We Use Your Information</h2>
+      <p>Any information we collect is used solely to:</p>
+      <ul>
+        <li>Provide, operate, and maintain ${esc(appName)}.</li>
+        <li>Improve and personalise your experience.</li>
+        <li>Respond to your comments, questions, and support requests.</li>
+        <li>Monitor usage to detect and prevent technical issues.</li>
+        ${data.includes('payment information') ? '<li>Process transactions securely.</li>' : ''}
+      </ul>
+
+      <h2>4. Data Sharing &amp; Disclosure</h2>
+      <p>
+        We do <strong>not</strong> sell, trade, or rent your personal information to third parties.
+        We may share data only in the following circumstances:
+      </p>
+      <ul>
+        <li><strong>Service providers:</strong> Trusted partners who assist in operating our
+        service, subject to confidentiality agreements.</li>
+        <li><strong>Legal requirements:</strong> When required by law or to protect our legal rights.</li>
+        <li><strong>Business transfers:</strong> In connection with a merger or acquisition.</li>
+      </ul>`;
+
+    if (thirdParty.length) {
+      html += `
+      <h2>5. Third-Party Services</h2>
+      <p>${esc(appName)} integrates with the following third-party services that have their own privacy policies:</p>
+      <ul>${thirdParty.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+      <p>We encourage you to review their respective privacy policies.</p>`;
+    }
+
+    const sectionNum = thirdParty.length ? 6 : 5;
+
+    html += `
+      <h2>${sectionNum}. Data Retention</h2>
+      <p>
+        We retain your information only for as long as necessary to fulfil the purposes
+        outlined in this policy, unless a longer retention period is required by law.
+      </p>
+
+      <h2>${sectionNum + 1}. Security</h2>
+      <p>
+        We implement industry-standard security measures to protect your information.
+        However, no method of transmission over the Internet is 100% secure, and we cannot
+        guarantee absolute security.
+      </p>
+
+      <h2>${sectionNum + 2}. Your Rights</h2>
+      <p>Depending on your location, you may have the right to:</p>
+      <ul>
+        <li>Access the personal information we hold about you.</li>
+        <li>Request correction or deletion of your data.</li>
+        <li>Opt out of certain data processing activities.</li>
+        <li>Lodge a complaint with a supervisory authority (e.g., GDPR, CCPA).</li>
+      </ul>
+
+      <h2>${sectionNum + 3}. Children's Privacy</h2>
+      <p>
+        Our service is not directed to children under 13. We do not knowingly collect personal
+        information from children. If you believe we have inadvertently collected such data,
+        please contact us immediately.
+      </p>`;
+
+    if (platforms.includes('Chrome Extension')) {
+      html += `
+      <h2>${sectionNum + 4}. Chrome Extension Specific</h2>
+      <p>
+        This extension complies with the
+        <a href="https://developer.chrome.com/docs/extensions/mv3/user_data_faq/" target="_blank" rel="noopener">
+        Chrome Web Store User Data Policy</a>. Any permissions requested are strictly required
+        for the core functionality described in the store listing.
+      </p>`;
+    }
+
+    const lastSection = platforms.includes('Chrome Extension') ? sectionNum + 5 : sectionNum + 4;
+
+    if (extra) {
+      html += `
+      <h2>${lastSection}. Additional Information</h2>
+      <p>${esc(extra).replace(/\n/g, '<br />')}</p>`;
+    }
+
+    const contactSection = extra ? lastSection + 1 : lastSection;
+    html += `
+      <h2>${contactSection}. Contact Us</h2>
+      <p>
+        If you have questions about this Privacy Policy, please contact us:
+      </p>
+      <ul>
+        <li><strong>Email:</strong> <a href="mailto:${esc(email)}">${esc(email)}</a></li>
+        ${website ? `<li><strong>Website:</strong> <a href="${esc(website)}" target="_blank" rel="noopener">${esc(website)}</a></li>` : ''}
+        <li><strong>Developer:</strong> ${esc(devName)}</li>
+      </ul>`;
+
+    document.getElementById('policy-output').innerHTML = html;
+  }
+
+  /* ── Copy helpers ── */
+  function copyMarkdown() {
+    const el = document.getElementById('policy-output');
+    let md = el.innerText
+      .replace(/^(\d+\. .+)$/gm, '\n## $1')
+      .trim();
+    navigator.clipboard.writeText(md).then(() => alert('Markdown copied to clipboard!'));
+  }
+
+  function copyHTML() {
+    const html = document.getElementById('policy-output').innerHTML;
+    navigator.clipboard.writeText(html).then(() => alert('HTML copied to clipboard!'));
+  }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+</script>
+
+</body>
+</html>
