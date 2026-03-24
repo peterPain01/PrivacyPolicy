@@ -144,6 +144,51 @@
     }
     .btn-copy:hover { border-color: #2563eb; color: #2563eb; }
     .btn-raw:hover  { border-color: #059669; color: #059669; }
+    .btn-url {
+      padding: .4rem .9rem;
+      border-radius: 7px;
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid #d1d5db;
+      background: white;
+      color: #374151;
+      transition: all .15s;
+    }
+    .btn-url:hover { border-color: #7c3aed; color: #7c3aed; }
+
+    .url-box {
+      margin-top: 1rem;
+      padding: .75rem 1rem;
+      background: #f5f3ff;
+      border: 1.5px solid #c4b5fd;
+      border-radius: 8px;
+      display: none;
+    }
+    .url-box label { font-size: .75rem; font-weight: 700; color: #7c3aed; margin-bottom: .4rem; display: block; }
+    .url-box .url-row { display: flex; gap: .5rem; align-items: center; }
+    .url-box input[type="text"] {
+      flex: 1;
+      font-size: .78rem;
+      color: #374151;
+      background: white;
+      border: 1.5px solid #c4b5fd;
+      border-radius: 6px;
+      padding: .4rem .6rem;
+    }
+    .url-box .btn-copy-url {
+      padding: .4rem .8rem;
+      border-radius: 6px;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid #7c3aed;
+      background: #7c3aed;
+      color: white;
+      white-space: nowrap;
+      transition: background .15s;
+    }
+    .url-box .btn-copy-url:hover { background: #6d28d9; }
 
     #policy-output {
       font-size: .9rem;
@@ -242,6 +287,14 @@
       <div style="display:flex;gap:.5rem;">
         <button class="btn-copy" onclick="copyMarkdown()">Copy Markdown</button>
         <button class="btn-raw"  onclick="copyHTML()">Copy HTML</button>
+        <button class="btn-url"  onclick="generateURL()">Generate URL</button>
+      </div>
+    </div>
+    <div class="url-box" id="url-box">
+      <label>Shareable Policy URL</label>
+      <div class="url-row">
+        <input type="text" id="generated-url" readonly />
+        <button class="btn-copy-url" onclick="copyURL()">Copy</button>
       </div>
     </div>
     <div id="policy-output">
@@ -429,6 +482,79 @@
     const html = document.getElementById('policy-output').innerHTML;
     navigator.clipboard.writeText(html).then(() => alert('HTML copied to clipboard!'));
   }
+
+  /* ── Generate shareable URL ── */
+  function generateURL() {
+    const appName   = document.getElementById('appName').value.trim();
+    const devName   = document.getElementById('devName').value.trim();
+    const email     = document.getElementById('email').value.trim();
+    const website   = document.getElementById('website').value.trim();
+    const platforms = activePlatforms();
+    const data      = checked('dataCollected');
+    const thirdParty = checked('thirdParty');
+    const extra     = document.getElementById('extraNotes').value.trim();
+
+    const params = new URLSearchParams();
+    if (appName)   params.set('app', appName);
+    if (devName)   params.set('dev', devName);
+    if (email)     params.set('email', email);
+    if (website)   params.set('site', website);
+    if (platforms.length)  params.set('platforms', platforms.join('|'));
+    if (data.length)       params.set('data', data.join('|'));
+    if (thirdParty.length) params.set('third', thirdParty.join('|'));
+    if (extra)     params.set('notes', extra);
+
+    const url = window.location.origin + window.location.pathname + '?' + params.toString();
+    document.getElementById('generated-url').value = url;
+    document.getElementById('url-box').style.display = 'block';
+
+    // also generate the policy if not already shown
+    generatePolicy();
+  }
+
+  function copyURL() {
+    const urlInput = document.getElementById('generated-url');
+    navigator.clipboard.writeText(urlInput.value).then(() => {
+      const btn = document.querySelector('.btn-copy-url');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    });
+  }
+
+  /* ── Auto-load from URL params on page open ── */
+  (function loadFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('app') && !params.has('dev') && !params.has('email')) return;
+
+    if (params.get('app'))   document.getElementById('appName').value = params.get('app');
+    if (params.get('dev'))   document.getElementById('devName').value = params.get('dev');
+    if (params.get('email')) document.getElementById('email').value   = params.get('email');
+    if (params.get('site'))  document.getElementById('website').value = params.get('site');
+    if (params.get('notes')) document.getElementById('extraNotes').value = params.get('notes');
+
+    if (params.get('platforms')) {
+      const active = params.get('platforms').split('|');
+      document.querySelectorAll('.chip').forEach(chip => {
+        chip.classList.toggle('active', active.includes(chip.dataset.val));
+      });
+    }
+
+    if (params.get('data')) {
+      const vals = params.get('data').split('|');
+      document.querySelectorAll('#dataCollected input[type="checkbox"]').forEach(cb => {
+        cb.checked = vals.includes(cb.value);
+      });
+    }
+
+    if (params.get('third')) {
+      const vals = params.get('third').split('|');
+      document.querySelectorAll('#thirdParty input[type="checkbox"]').forEach(cb => {
+        cb.checked = vals.includes(cb.value);
+      });
+    }
+
+    generatePolicy();
+  })();
 
   function esc(str) {
     return String(str)
